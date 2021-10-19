@@ -1,0 +1,34 @@
+<%-include('header')-%>
+<form id="login_form">
+  <label for="username">name</label>
+  <input type="text" placeholder="username" id="username" /><br />
+  <label for="password">Password</label>
+  <input type="password" placeholder="password" id="password" /><br />
+  <input type="submit" value="submit">
+</form>
+<script>
+  const form=document.getElementById("login_form")
+  form.addEventListener("submit",loginuser)
+
+  async function loginuser(event) {
+    event.preventDefault();
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    const result = await fetch("/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/JSON",
+      },
+      body: JSON.stringify({
+        username,
+        password,
+      }),
+    }).then((res) => res.json());
+
+    if (result.status === "ok") {
+      window.location.assign("/dash");}
+    else alert(result.error);
+  }
+</script>
+<%-include('footer')-%>
