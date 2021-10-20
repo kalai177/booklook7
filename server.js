@@ -41,20 +41,20 @@ app.get("/register", function (req, res) {
 });
 
 const authorization = (req, res, next) => {
-  const tokenn = req.cookies.access_token;
-  console.log(tokenn);
-  if (!tokenn) res.sendStatus(403);
+  const token = req.cookies.access_token;
+  console.log(token);
+  if (!token) alert({status:403})
   try {
-    const data = jwt.verify(tokenn, JWT_SECRET);
-    req.usernamee = data.username;
-    console.log(req.usernamee);
+    const data = jwt.verify(token, JWT_SECRET);
+    req.username = data.username;
     return next();
   } catch {
     res.sendStatus(403);
   }
 };
 app.get("/dash", authorization, function (req, res) {
-  res.render("home", { title: req.usernamee });
+  console.log(req.username);
+  res.render("home", { title: req.username });
 });
 
 app.post("/api/login", express.json(), async (req, res) => {
@@ -63,12 +63,25 @@ app.post("/api/login", express.json(), async (req, res) => {
   if (!user) return res.json({ status: "error", error: "invalid username" });
   try {
     await bcrypt.compare(password, user.passcode);
-   
-     
+    console.log('pass okay')
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+        username: user.username,
+      },
+      JWT_SECRET
+    );
+
+    return res
+      .cookie("access_token", token, {
+        httpOnly: false,
+        secure: true,
+      })
+      .json({ status: "ok" });
   } catch (error) {
     return res.json({ status: "error", error: "invalid username or password" });
   }
-  return res.json({ status: "ok" });
 });
 
 app.post("/api/register", express.json(), async (req, res) => {
@@ -98,30 +111,20 @@ app.post("/api/register", express.json(), async (req, res) => {
     });
     console.log("User created successfully: ", respond);
 
-    const token = jwt.sign(
-      {
-        id: respond._id,
-        username: username,
-      },
-      JWT_SECRET
-    );
-
-    return res
-      .cookie("access_token", token, {
-        httpOnly: false,
-        secure: true,
-      })
-      .json({ status: "ok" });
+    
   } catch (error) {
     if (error.code === 11000) {
       return res.json({ status: "error", error: "Username already in use" });
     }
     throw error;
   }
+  return res.json({status:'ok'})
 });
 
-app.listen(port, function () {
-  console.log('success')
-}).on('error',function(error){
-  console.log(error);
-});
+app
+  .listen(port, function () {
+    console.log("success http://localhost:3000/");
+  })
+  .on("error", function (error) {
+    console.log(error);
+  });
