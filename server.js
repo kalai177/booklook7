@@ -3,6 +3,7 @@ const app = express();
 const path = require("path");
 const port = process.env.PORT || 3000;
 const User = require("./models/user");
+const Post = require("./models/post");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -43,7 +44,7 @@ app.get("/register", function (req, res) {
 const authorization = (req, res, next) => {
   const token = req.cookies.access_token;
   console.log(token);
-  if (!token) alert({status:403})
+  if (!token) alert({ status: 403 });
   try {
     const data = jwt.verify(token, JWT_SECRET);
     req.username = data.username;
@@ -57,14 +58,40 @@ app.get("/dash", authorization, function (req, res) {
   res.render("home", { title: req.username });
 });
 
+app.get("/newblog", function (req, res) {
+  res.render("newblog");
+});
+
+app.post("/dash", express.json(), async (req, res) => {
+  console.log('called logpost')
+  const { title, review } = req.body;
+  if (!title || !review)
+    return res.json({ status: "title or review field not filled properly" });
+  const name = req.cookies.access_token.username;
+  const id = new mongoose.Types.ObjectId();
+  try {
+    const var1 = await Post.create({
+      name,
+      title,
+      review,
+      id,
+    });
+    console.log(var1);
+  } catch (error) {
+    return res.json({ status: "error", error: "failed" });
+  }
+  throw error;
+  
+});
+
 app.post("/api/login", express.json(), async (req, res) => {
   const { username, password } = req.body;
   const user = await User.findOne({ username }).lean();
   if (!user) return res.json({ status: "error", error: "invalid username" });
   try {
     await bcrypt.compare(password, user.passcode);
-    console.log('pass okay')
-
+    console.log("pass okay");
+    console.log(user._id);
     const token = jwt.sign(
       {
         id: user._id,
@@ -110,15 +137,13 @@ app.post("/api/register", express.json(), async (req, res) => {
       passcode,
     });
     console.log("User created successfully: ", respond);
-
-    
   } catch (error) {
     if (error.code === 11000) {
       return res.json({ status: "error", error: "Username already in use" });
     }
     throw error;
   }
-  return res.json({status:'ok'})
+  return res.json({ status: "ok" });
 });
 
 app
