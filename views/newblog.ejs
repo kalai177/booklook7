@@ -1,0 +1,52 @@
+<%-include('header')-%>
+<hr />
+<h3>Create new blog</h3>
+<hr />
+<br />
+<form id="new_blog">
+  <textarea
+    id="title"
+    placeholder="enter the title of the book"
+    rows="2"
+    cols="25"
+  ></textarea
+  ><br />
+  <br />
+  <br />
+  <textarea
+    id="review"
+    placeholder="post your review about that book"
+    rows="10"
+    cols="75"
+  ></textarea
+  ><br />
+  <br />
+  <br />
+  <input type="submit" value="Save" />
+</form>
+<script>
+  const form=document.getElementById('new_blog')
+  form.addEventListener('submit',newpost)
+    async function newpost(event){
+        event.preventdefault();
+     
+        const title=document.getElementById("title").value
+        const review=document.getElementById("review").value
+        
+        const result=await fetch('/dash',{
+            method:"POST",
+            headers:{
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                title,
+                review,
+            }),
+        }).then((res)=>res.json());
+        if(result.status===error)
+        {
+          alert(result.error);
+        }
+    }
+</script>
+<%-include('footer')-%>
