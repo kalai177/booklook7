@@ -1,6 +1,10 @@
 <%-include('header')-%>
 
 <h5>welcome  <%=locals.title?title:'bookblurb'%> !!</h5>
-
-
+<button type="button" onclick='new_blog()'>+</button>
+<script>
+    function new_blog(){
+        window.location.assign('/newblog')
+    }
+</script>
 <%-include('footer')-%>
