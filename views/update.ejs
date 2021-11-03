@@ -1,31 +1,35 @@
 <%-include('header')-%>
-  <form id="updateblog">
-    <textarea id="title"  rows="2" cols="25"><%=data.title%> </textarea>
-    <br /><br />
-    <textarea id="review"  rows="10" cols="75"><%=data.review%> </textarea><br /><br />
-    <button type="submit"  onclick="updatedata('<%=data._id%>')">Update</button>
-  </form>
-  <script>
-    async function updatedata(id) {
-     console.log('update called')
-     const title = document.getElementById("title").value
-     const review = document.getElementById("review").value
-     console.log(review)
-      const result = await fetch("/api/update", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/JSON",
-        },
-        body: JSON.stringify({
-          title,
-          review,
-          id,
-        }),
-      }).then((res) => res.json());
-      if (result.status === "ok") window.location.assign('/dash')
-      else {
-        alert(result.error);
-      }
+<form id="updateblog">
+  <textarea id="title" rows="2" cols="25"> <%=data.title%> </textarea>
+  <br /><br />
+  <textarea id="review" rows="10" cols="75"> <%=data.review%> </textarea
+  ><br /><br />
+  <input type="submit" value="Update" />
+</form>
+<script>
+  const id = "<%=data._id%>";
+  const form = document.getElementById("updateblog");
+  form.addEventListener("submit", updatedata);
+  async function updatedata(event) {
+    const title=document.getElementById("title").value
+    const review=document.getElementById("review").value
+    event.preventDefault();
+    console.log("update called");
+    const result = await fetch("/api/updatedata", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/JSON",
+      },
+      body: JSON.stringify({
+        title,
+        review,
+        id,
+      }),
+    }).then((res) => res.json());
+    if (result.status === "ok") window.location.assign("/dash");
+    else {
+      alert(result.error);
     }
-  </script>
-  <%-include('footer')-%>
+  }
+</script>
+<%-include('footer')-%>
