@@ -44,7 +44,7 @@ app.get("/register", function (req, res) {
 const authorization = (req, res, next) => {
   const token = req.cookies.access_token;
 
-  if (!token) alert({ status: 403 });
+  if (!token) res.sendStatus(403);
   try {
     const data = jwt.verify(token, JWT_SECRET);
     req.username = data.username;
@@ -53,42 +53,44 @@ const authorization = (req, res, next) => {
     res.sendStatus(403);
   }
 };
-app.get("/dash", authorization,async function(req, res) {
- 
+app.get("/dash", authorization, async function (req, res) {
   const name = req.username;
-    const result=await Post.find({ name: name }).exec()
-    
-    res.render("home", { title: name, data: result });
+  const result = await Post.find({ name: name }).exec();
 
+  res.render("home", { title: name, data: result });
 });
 
 app.get("/newblog", function (req, res) {
   res.render("newblog");
 });
-app.get("/updatepost/:id", express.json(), async(req, res)=> {
-const {id}=req.params;
-try{
-  const result = await Post.findById(id).exec();
 
-  res.render('update', {data:result})
-}
-catch(err){
-  console.log(err)
-}
+app.get("/updatepost/:id",authorization, express.json(), async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await Post.findById(id).exec();
+    try{
+      if(result.name!==req.username) res.sendStatus(403);
+      res.render("update", { data: result });
+    }catch(err){
+     res.sendStatus(403);
+    }
+  } catch (err) {
+    console.log(err);
+  }
 });
-app.put("/api/updatedata",express.json(), async(req, res)=> {
- 
+app.put("/api/updatedata", express.json(), async (req, res) => {
   const { title, review, id } = req.body;
-  try{
-  const result = await Post.findByIdAndUpdate(id,
-   { title: title, review: review })
-   return res.json({status:'ok'})
-  }catch(err) {
-        console.log(err)
-        return res.json({status:"error" , error:err})
-      }
-     
+  try {
+    const result = await Post.findByIdAndUpdate(id, {
+      title: title,
+      review: review,
     });
+    return res.json({ status: "ok" });
+  } catch (err) {
+    console.log(err);
+    return res.json({ status: "error", error: err });
+  }
+});
 
 app.post("/api/dash", express.json(), authorization, async (req, res) => {
   console.log("called logpost");
