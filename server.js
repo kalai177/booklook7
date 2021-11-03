@@ -68,12 +68,8 @@ app.get("/updatepost/:id",authorization, express.json(), async (req, res) => {
   const { id } = req.params;
   try {
     const result = await Post.findById(id).exec();
-    try{
       if(result.name!==req.username) res.sendStatus(403);
       res.render("update", { data: result });
-    }catch(err){
-     res.sendStatus(403);
-    }
   } catch (err) {
     console.log(err);
   }
