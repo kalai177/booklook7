@@ -43,7 +43,7 @@ app.get("/register", function (req, res) {
 
 const authorization = (req, res, next) => {
   const token = req.cookies.access_token;
-  console.log(token);
+
   if (!token) alert({ status: 403 });
   try {
     const data = jwt.verify(token, JWT_SECRET);
@@ -53,35 +53,72 @@ const authorization = (req, res, next) => {
     res.sendStatus(403);
   }
 };
-app.get("/dash", authorization, function (req, res) {
-  console.log(req.username);
-  res.render("home", { title: req.username });
+app.get("/dash", authorization,async function(req, res) {
+ 
+  const name = req.username;
+    const result=await Post.find({ name: name }).exec()
+    
+    res.render("home", { title: name, data: result });
+
 });
 
 app.get("/newblog", function (req, res) {
   res.render("newblog");
 });
+app.get("/updatepost/:id",  async(req, res)=> {
+const {id}=req.params;
+try{
+  const result= await Post.findById(id).exec();
+  console.log('id finded render ejs update');
+  res.render('update', {data:result})
+}
+catch(err){
+  console.log(err)
+}
+});
+app.put("/api/updatedata",express.json(), async(req, res)=> {
+  console.log('updateee ')
+  const { title, review, id } = req.body;
+  try{
+  const result = await Post.findByIdAndUpdate(
+    {_id:id},
+   { $set: { title: title, review: review }})
+   console.log('ater update');
+   console.log(result)
+   return res.json({status:'ok'})
+  }catch(err) {
+        console.log(err)
+        return res.json({status:"error" , error:err})
+      }
+     
+    }
+  );
 
-app.post("/dash", express.json(), async (req, res) => {
-  console.log('called logpost')
+app.post("/api/dash", express.json(), authorization, async (req, res) => {
+  console.log("called logpost");
   const { title, review } = req.body;
   if (!title || !review)
-    return res.json({ status: "title or review field not filled properly" });
-  const name = req.cookies.access_token.username;
-  const id = new mongoose.Types.ObjectId();
+    return res.json({
+      status: "error",
+      error: "title or review field not filled properly",
+    });
+  const name = req.username;
+  console.log(name);
+  const _id = new mongoose.Types.ObjectId();
+  console.log(_id);
   try {
+    console.log("try");
     const var1 = await Post.create({
       name,
       title,
       review,
-      id,
+      _id,
     });
     console.log(var1);
+    return res.json({ status: "ok" });
   } catch (error) {
     return res.json({ status: "error", error: "failed" });
   }
-  throw error;
-  
 });
 
 app.post("/api/login", express.json(), async (req, res) => {
@@ -90,8 +127,6 @@ app.post("/api/login", express.json(), async (req, res) => {
   if (!user) return res.json({ status: "error", error: "invalid username" });
   try {
     await bcrypt.compare(password, user.passcode);
-    console.log("pass okay");
-    console.log(user._id);
     const token = jwt.sign(
       {
         id: user._id,
@@ -144,6 +179,18 @@ app.post("/api/register", express.json(), async (req, res) => {
     throw error;
   }
   return res.json({ status: "ok" });
+});
+
+app.delete("/api/delete", express.json(), async (req, res) => {
+  console.log(req.body.id);
+  try {
+    const user = await Post.findByIdAndDelete({ _id: req.body.id });
+    console.log(user.name);
+    return res.json({ status: "ok" });
+  } catch (err) {
+    console.log(err);
+    return res.json({ status: "error", error: "failed to delete" });
+  }
 });
 
 app
