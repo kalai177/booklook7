@@ -1,10 +1,66 @@
 <%-include('header')-%>
 
-<h5>welcome  <%=locals.title?title:'bookblurb'%> !!</h5>
-<button type="button" onclick='new_blog()'>+</button>
-<script>
-    function new_blog(){
-        window.location.assign('/newblog')
-    }
-</script>
-<%-include('footer')-%>
+  <h5>welcome <%=locals.title? title:'bookblurb'%> !!</h5>
+
+  <button type="button" onclick="new_blog()">+</button>
+  <h5>
+    <%=data.length %> reviews
+  </h5>
+
+  <% if(data.length> 0){%> <% for(var i=0; i<data.length;i++){ %>
+
+      <table style="width: 200%; border: 2px solid black">
+        <tr>
+          <td>
+            Post No:<%=i+1%>
+          </td>
+        </tr>
+        <tr>
+          <td>Title:<%=data[i].title %>
+          </td>
+        </tr>
+
+        <tr>
+          <td>Review:<%=data[i].review %>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <button type=" button" onclick="update('<%=data[i]._id %>')">Update</button>
+            <button type="button" onclick="remove('<%=data[i]._id %>')">Delete</button>
+
+          </td>
+        </tr>
+      </table>
+      </br>
+      <%}%>
+        <%}%>
+          <script>
+            function new_blog() {
+              window.location.assign("/newblog");
+            }
+
+           function update(id){
+             window.location.assign('/updatepost/'+id)
+           }
+           async function remove(id) {
+              console.log('called')
+              console.log(id);
+              const result = await fetch('/api/delete', {
+                method: "DELETE",
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({id}),
+              }).then((res) => res.json());
+             if(result.status==='ok'){
+               console.log('succed')
+               window.location.assign("/dash")
+             }
+             else{
+               alert(result.error)
+             }
+            }
+          </script>
+          <%-include('footer')-%>
